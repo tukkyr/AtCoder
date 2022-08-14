@@ -31,3 +31,16 @@ cat main.go | clip.exe
 ```sh
 cat main.go | pdcopy
 ```
+
+### go test command
+
+```sh
+go test -v .
+```
+
+it read test cases from `cases` dir
+and if exist it, doing test from these files
+
+#### helper methods
+
+- td: open sample test file that downloaded from AtCoder site by `oj` command and do all tests with time stamp.

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -57,16 +59,28 @@ func TestMinMax(t *testing.T) {
 	}
 }
 
+var done = errors.New("done")
+
+func isFinish(err error) error {
+	var pe *fs.PathError
+	if errors.As(err, &pe) {
+		// log.Printf("err:%v op:%s path:%s", pe.Err, pe.Op, pe.Path)
+		return done
+	} else {
+		return err
+	}
+}
+
 func td(i int) (int, int, error) {
 	pwd, _ := os.Getwd()
 	q, err := os.Open(filepath.Join(pwd, "cases", fmt.Sprintf("%d.in", i)))
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, isFinish(err)
 	}
 	defer q.Close()
 	a, err := os.Open(filepath.Join(pwd, "cases", fmt.Sprintf("%d.out", i)))
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, isFinish(err)
 	}
 	defer a.Close()
 	w := output(a)
@@ -79,8 +93,11 @@ func td(i int) (int, int, error) {
 func TestSample(t *testing.T) {
 	for i := 1; i < 10; i++ {
 		g, w, err := td(i)
-		if err != nil {
+		if err == done {
 			break
+		}
+		if err != nil {
+			t.Fatal(err)
 		}
 		if g != w {
 			want(t, w, g)
